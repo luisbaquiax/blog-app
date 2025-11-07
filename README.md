@@ -108,11 +108,9 @@ blog-app/
 
 La aplicación espera que tu backend tenga los siguientes endpoints:
 
-### Autenticación
-- `POST /auth/register` - Registro de usuario
-- `POST /auth/login` - Login de usuario
-
-### Usuarios
+### Autenticación y Usuarios
+- `POST /users` - Registro de usuario
+- `POST /users/login` - Login de usuario
 - `GET /usuarios/:id` - Obtener perfil de usuario
 - `PUT /usuarios/:id` - Actualizar perfil
 - `GET /usuarios` - Listar usuarios

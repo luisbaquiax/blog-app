@@ -26,7 +26,7 @@ export default function LoginPage() {
     setError("")
 
     try {
-      const response = await axiosInstance.post("/auth/login", formData)
+      const response = await axiosInstance.post("/users/login", formData)
 
       // Guardar token y datos de usuario
       if (response.data.token) {

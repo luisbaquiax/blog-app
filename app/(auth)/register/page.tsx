@@ -51,7 +51,7 @@ export default function RegisterPage() {
 
     try {
       const { confirmPassword, ...dataToSend } = formData
-      await axiosInstance.post("/auth/register", dataToSend)
+      await axiosInstance.post("/users", dataToSend)
 
       router.push("/login?registered=true")
     } catch (err: any) {
