@@ -82,3 +82,29 @@ export interface Amistad {
   fecha_actualizacion?: string
   usuario?: Usuario
 }
+
+export interface HistorialLectura {
+  id_historial: number
+  id_usuario: number
+  id_publicacion: number
+  fecha_lectura: string
+}
+
+export interface PublicacionMasLeida {
+  id_publicacion: number
+  cantidad_lecturas: number
+  publicacion?: Publicacion
+}
+
+export interface Denuncia {
+  id_denuncia: number
+  id_usuario: number
+  id_publicacion: number
+  motivo: string
+  descripcion: string
+  estado: "PENDIENTE" | "REVISADO" | "ACEPTADO" | "RECHAZADO"
+  fecha_denuncia: string
+  fecha_actualizacion?: string
+  usuario?: Usuario
+  publicacion?: Publicacion
+}

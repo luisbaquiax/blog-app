@@ -175,4 +175,18 @@ export const api = {
   getSuscripciones: async (id_usuario: number) => {
     return axiosInstance.get(`/suscripciones/suscripciones/${id_usuario}`)
   },
+
+  // Historial de lectura
+  agregarHistorialLectura: async (id_usuario: number, id_publicacion: number) => {
+    return axiosInstance.post("/historial-lectura/agregar", { id_usuario, id_publicacion })
+  },
+
+  getPublicacionesMasLeidas: async () => {
+    return axiosInstance.get("/historial-lectura/reporte-mas-leidas")
+  },
+
+  // Usuarios con persona
+  getUsersWithPersona: async () => {
+    return axiosInstance.get("/users/con-persona")
+  },
 }

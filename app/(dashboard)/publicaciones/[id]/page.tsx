@@ -7,19 +7,27 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { ComentariosSection } from "@/components/comentarios/comentarios-section"
 import { LikeButton } from "@/components/publicaciones/like-button"
+import { DenunciarButton } from "@/components/publicaciones/denunciar-button"
 import type { Publicacion } from "@/types"
 import { api } from "@/lib/api"
+import { getUserFromStorage } from "@/lib/auth"
 
 export default function PublicacionDetailPage() {
   const params = useParams()
   const [publicacion, setPublicacion] = useState<Publicacion | null>(null)
   const [loading, setLoading] = useState(true)
+  const user = getUserFromStorage()
 
   useEffect(() => {
     const fetchPublicacion = async () => {
       try {
         const response = await api.getPublicacionPorId(Number(params.id))
         setPublicacion(response.data.data)
+
+        if (user) {
+          await api.agregarHistorialLectura(user.id_usuario, Number(params.id))
+        }
+
         setLoading(false)
       } catch (error) {
         console.error("Error al cargar publicación:", error)
@@ -55,10 +63,18 @@ export default function PublicacionDetailPage() {
               <AvatarFallback>{publicacion.usuario?.nombre_usuario[0].toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <h3 className="font-semibold">{publicacion.usuario?.nombre_usuario}</h3>
                 <Badge variant="secondary">{publicacion.tipo_publicacion}</Badge>
                 {publicacion.usuario?.tipo_usuario === "PERIODISTA" && <Badge variant="outline">Periodista</Badge>}
+                {publicacion.estado && (
+                  <Badge variant={publicacion.estado === "APROBADO" ? "default" : "destructive"}>
+                    {publicacion.estado}
+                  </Badge>
+                )}
+                {publicacion.orientacion_politica && (
+                  <Badge variant="outline">{publicacion.orientacion_politica}</Badge>
+                )}
               </div>
               <p className="text-sm text-muted-foreground">
                 {new Date(publicacion.fecha_publicacion!).toLocaleDateString("es-ES", {
@@ -87,6 +103,9 @@ export default function PublicacionDetailPage() {
 
           <div className="flex items-center gap-4 pt-4 border-t">
             <LikeButton publicacionId={publicacion.id_publicacion} initialLikes={0} />
+            {publicacion.tipo_publicacion === "ARTICULO" && user && (
+              <DenunciarButton publicacionId={publicacion.id_publicacion} userId={user.id_usuario} />
+            )}
           </div>
         </CardContent>
       </Card>
