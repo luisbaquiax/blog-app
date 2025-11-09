@@ -164,9 +164,9 @@ export const api = {
   },
 
   actualizarEstadoDenuncia: async (id_denuncia: number, nuevo_estado: string) => {
-    return axiosInstance.put(`/denuncias/denuncia/${id_denuncia}/estado`, { nuevo_estado })
+    return axiosInstance.put(`/denuncias/actualizar`, { id_denuncia, nuevo_estado })
   },
-
+  
   // Suscripciones
   suscribirseAPeriodista: async (id_usuario: number, id_periodista: number) => {
     return axiosInstance.post("/suscripciones/suscribirse", { id_usuario, id_periodista })
