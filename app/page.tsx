@@ -5,7 +5,8 @@ import { api } from "@/lib/api"
 import { getUserFromStorage } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Heart, MessageCircle, Share2, User } from "lucide-react"
+import { Heart, MessageCircle, User } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
@@ -14,6 +15,8 @@ interface Publicacion {
   titulo: string
   contenido: string
   fecha_publicacion: string
+  tipo_publicacion: string
+  visibilidad: string
   Usuario: {
     id_usuario: number
     nombre_usuario: string
@@ -24,12 +27,17 @@ interface Publicacion {
       biografia: string
     }
   }
-  likes?: number
+  PublicacionFotos?: Array<{
+    url_foto: string
+    descripcion: string
+  }>
 }
 
 export default function HomePage() {
-  const [publicaciones, setPublicaciones] = useState<Publicacion[]>([])
+  const [publicacionesPublicas, setPublicacionesPublicas] = useState<Publicacion[]>([])
+  const [publicacionesAmigos, setPublicacionesAmigos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [filtro, setFiltro] = useState<"publicas" | "amigos">("publicas")
   const user = getUserFromStorage()
   const router = useRouter()
 
@@ -39,8 +47,13 @@ export default function HomePage() {
 
   const cargarPublicaciones = async () => {
     try {
-      const response = await api.getPublicacionesPublicas()
-      setPublicaciones(response.data.data || [])
+      const responsePublicas = await api.getPublicacionesPublicas()
+      setPublicacionesPublicas(responsePublicas.data.data || [])
+
+      if (user) {
+        const responseAmigos = await api.getPublicacionesVisibles(user.id_usuario)
+        setPublicacionesAmigos(responseAmigos.data || [])
+      }
     } catch (error) {
       console.error("Error al cargar publicaciones:", error)
     } finally {
@@ -60,6 +73,88 @@ export default function HomePage() {
     } catch (error) {
       console.error("Error al dar like:", error)
     }
+  }
+
+  const renderPublicacion = (pub: any, likesCount?: number) => {
+    const publicacion = pub.publicacion || pub
+    const likes = likesCount || pub.likes || 0
+
+    return (
+      <Card key={publicacion.id_publicacion} className="overflow-hidden">
+        <CardHeader>
+          <div className="flex items-start gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <User className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-semibold">
+                {publicacion.Usuario?.Persona?.nombre} {publicacion.Usuario?.Persona?.apellido}
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                @{publicacion.Usuario?.nombre_usuario} • {publicacion.Usuario?.tipo_usuario}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {new Date(publicacion.fecha_publicacion).toLocaleDateString("es-ES", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+            </div>
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium">
+              {publicacion.tipo_publicacion}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <h3 className="mb-2 text-xl font-bold">{publicacion.titulo}</h3>
+          <p className="text-muted-foreground line-clamp-3">{publicacion.contenido}</p>
+          {publicacion.PublicacionFotos && publicacion.PublicacionFotos.length > 0 && (
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              {publicacion.PublicacionFotos.slice(0, 2).map((foto: any, idx: number) => (
+                <img
+                  key={idx}
+                  src={foto.url_foto || "/placeholder.svg"}
+                  alt={foto.descripcion || "Foto de publicación"}
+                  className="h-48 w-full rounded-lg object-cover"
+                />
+              ))}
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex items-center justify-between border-t pt-4">
+          <div className="flex gap-4">
+            <Button variant="ghost" size="sm" onClick={() => handleLike(publicacion.id_publicacion)} disabled={!user}>
+              <Heart className="mr-2 h-4 w-4" />
+              {likes} Me gusta
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (!user) {
+                  router.push("/login")
+                } else {
+                  router.push(`/publicaciones/${publicacion.id_publicacion}`)
+                }
+              }}
+            >
+              <MessageCircle className="mr-2 h-4 w-4" />
+              Comentar
+            </Button>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild={user ? true : false}
+            disabled={!user}
+            onClick={() => !user && router.push("/login")}
+          >
+            <Link href={`/publicaciones/${publicacion.id_publicacion}`}>Ver más</Link>
+          </Button>
+        </CardFooter>
+      </Card>
+    )
   }
 
   return (
@@ -107,7 +202,7 @@ export default function HomePage() {
       {/* Publicaciones */}
       <section className="container py-8">
         <div className="mx-auto max-w-4xl">
-          <h3 className="mb-6 text-2xl font-bold">Publicaciones Recientes</h3>
+          <h3 className="mb-6 text-2xl font-bold">Publicaciones</h3>
 
           {loading ? (
             <div className="space-y-4">
@@ -118,70 +213,51 @@ export default function HomePage() {
                 </Card>
               ))}
             </div>
-          ) : publicaciones.length === 0 ? (
-            <Card>
-              <CardContent className="flex min-h-[200px] items-center justify-center">
-                <p className="text-muted-foreground">No hay publicaciones disponibles</p>
-              </CardContent>
-            </Card>
           ) : (
-            <div className="space-y-6">
-              {publicaciones.map((pub) => (
-                <Card key={pub.id_publicacion} className="overflow-hidden">
-                  <CardHeader>
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                        <User className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold">
-                          {pub.Usuario?.Persona?.nombre} {pub.Usuario?.Persona?.apellido}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          @{pub.Usuario?.nombre_usuario} • {pub.Usuario?.tipo_usuario}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(pub.fecha_publicacion).toLocaleDateString("es-ES", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <h3 className="mb-2 text-xl font-bold">{pub.titulo}</h3>
-                    <p className="text-muted-foreground line-clamp-3">{pub.contenido}</p>
-                  </CardContent>
-                  <CardFooter className="flex items-center justify-between border-t pt-4">
-                    <div className="flex gap-4">
-                      <Button variant="ghost" size="sm" onClick={() => handleLike(pub.id_publicacion)} disabled={!user}>
-                        <Heart className="mr-2 h-4 w-4" />
-                        {pub.likes || 0} Me gusta
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          if (!user) {
-                            router.push("/login")
-                          } else {
-                            router.push(`/publicaciones/${pub.id_publicacion}`)
-                          }
-                        }}
-                      >
-                        <MessageCircle className="mr-2 h-4 w-4" />
-                        Comentar
-                      </Button>
-                    </div>
-                    <Button variant="ghost" size="sm" disabled={!user}>
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
+            <>
+              {user ? (
+                <Tabs defaultValue="publicas" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-6">
+                    <TabsTrigger value="publicas">Públicas</TabsTrigger>
+                    <TabsTrigger value="amigos">Mis Amigos y Públicas</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="publicas" className="space-y-6">
+                    {publicacionesPublicas.length === 0 ? (
+                      <Card>
+                        <CardContent className="flex min-h-[200px] items-center justify-center">
+                          <p className="text-muted-foreground">No hay publicaciones disponibles</p>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      publicacionesPublicas.map((pub) => renderPublicacion(pub))
+                    )}
+                  </TabsContent>
+                  <TabsContent value="amigos" className="space-y-6">
+                    {publicacionesAmigos.length === 0 ? (
+                      <Card>
+                        <CardContent className="flex min-h-[200px] items-center justify-center">
+                          <p className="text-muted-foreground">No hay publicaciones de amigos disponibles</p>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      publicacionesAmigos.map((item) => renderPublicacion(item.publicacion, item.likes))
+                    )}
+                  </TabsContent>
+                </Tabs>
+              ) : (
+                <div className="space-y-6">
+                  {publicacionesPublicas.length === 0 ? (
+                    <Card>
+                      <CardContent className="flex min-h-[200px] items-center justify-center">
+                        <p className="text-muted-foreground">No hay publicaciones disponibles</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    publicacionesPublicas.map((pub) => renderPublicacion(pub))
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
