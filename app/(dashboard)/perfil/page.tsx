@@ -4,25 +4,21 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import axiosInstance from "@/lib/axios"
-import type { Usuario, Persona } from "@/types"
+import { api } from "@/lib/api"
+import { getUserFromStorage } from "@/lib/auth"
 
 export default function PerfilPage() {
-  const [usuario, setUsuario] = useState<Usuario | null>(null)
-  const [persona, setPersona] = useState<Persona | null>(null)
+  const [perfilData, setPerfilData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const user = getUserFromStorage()
 
   useEffect(() => {
     const fetchPerfil = async () => {
+      if (!user) return
+
       try {
-        const userStr = localStorage.getItem("user")
-        if (userStr) {
-          const user = JSON.parse(userStr)
-          const response = await axiosInstance.get(`/usuarios/${user.id_usuario}`)
-          setUsuario(response.data.usuario)
-          setPersona(response.data.persona)
-        }
+        const response = await api.getUserProfile(user.id_usuario)
+        setPerfilData(response.data.data)
       } catch (error) {
         console.error("Error al cargar perfil:", error)
       } finally {
@@ -34,8 +30,14 @@ export default function PerfilPage() {
   }, [])
 
   if (loading) {
-    return <div>Cargando...</div>
+    return <div className="max-w-4xl mx-auto p-6">Cargando...</div>
   }
+
+  if (!perfilData) {
+    return <div className="max-w-4xl mx-auto p-6">No se pudo cargar el perfil</div>
+  }
+
+  const persona = perfilData.Persona || perfilData.persona
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -46,17 +48,19 @@ export default function PerfilPage() {
         <CardContent>
           <div className="flex items-start gap-6">
             <Avatar className="h-24 w-24">
-              <AvatarFallback className="text-2xl">{usuario?.nombre_usuario[0].toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="text-2xl">
+                {perfilData.nombre_usuario?.[0]?.toUpperCase() || "U"}
+              </AvatarFallback>
             </Avatar>
             <div className="flex-1 space-y-4">
               <div>
-                <h2 className="text-2xl font-bold">{usuario?.nombre_usuario}</h2>
+                <h2 className="text-2xl font-bold">{perfilData.nombre_usuario}</h2>
                 <p className="text-muted-foreground">
                   {persona?.nombre} {persona?.apellido}
                 </p>
                 <div className="flex gap-2 mt-2">
-                  <Badge>{usuario?.tipo_usuario}</Badge>
-                  {usuario?.posicion_politica && <Badge variant="outline">{usuario.posicion_politica}</Badge>}
+                  <Badge>{perfilData.tipo_usuario}</Badge>
+                  {perfilData.posicion_politica && <Badge variant="outline">{perfilData.posicion_politica}</Badge>}
                 </div>
               </div>
 
@@ -69,7 +73,7 @@ export default function PerfilPage() {
 
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="font-semibold">Correo:</span> {persona?.correo}
+                  <span className="font-semibold">Correo:</span> {persona?.correo || "N/A"}
                 </div>
                 <div>
                   <span className="font-semibold">Teléfono:</span> {persona?.telefono || "N/A"}
@@ -82,7 +86,11 @@ export default function PerfilPage() {
                 </div>
               </div>
 
-              <Button>Editar Perfil</Button>
+              {perfilData.tipo_usuario === "PERIODISTA" && perfilData.medios_comunicacion && (
+                <div>
+                  <span className="font-semibold">Medios de Comunicación:</span> {perfilData.medios_comunicacion}
+                </div>
+              )}
             </div>
           </div>
         </CardContent>

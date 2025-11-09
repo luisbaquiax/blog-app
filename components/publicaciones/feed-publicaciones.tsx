@@ -2,18 +2,22 @@
 
 import { useEffect, useState } from "react"
 import { PublicacionCard } from "./publicacion-card"
-import axiosInstance from "@/lib/axios"
-import type { Publicacion } from "@/types"
+import { api } from "@/lib/api"
+import { getUserFromStorage } from "@/lib/auth"
 
 export function FeedPublicaciones() {
-  const [publicaciones, setPublicaciones] = useState<Publicacion[]>([])
+  const [publicaciones, setPublicaciones] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchPublicaciones = async () => {
       try {
-        const response = await axiosInstance.get("/publicaciones")
-        setPublicaciones(response.data)
+        const user = getUserFromStorage()
+        if (!user) return
+
+        const response = await api.getPublicacionesVisibles(user.id_usuario)
+        // El backend devuelve array de { publicacion, likes }
+        setPublicaciones(response.data || [])
       } catch (error) {
         console.error("Error al cargar publicaciones:", error)
       } finally {
@@ -25,7 +29,7 @@ export function FeedPublicaciones() {
   }, [])
 
   if (loading) {
-    return <div>Cargando publicaciones...</div>
+    return <div className="text-center py-8">Cargando publicaciones...</div>
   }
 
   return (
@@ -33,8 +37,12 @@ export function FeedPublicaciones() {
       {publicaciones.length === 0 ? (
         <p className="text-center text-muted-foreground py-8">No hay publicaciones disponibles</p>
       ) : (
-        publicaciones.map((publicacion) => (
-          <PublicacionCard key={publicacion.id_publicacion} publicacion={publicacion} />
+        publicaciones.map((item) => (
+          <PublicacionCard
+            key={item.publicacion.id_publicacion}
+            publicacion={item.publicacion}
+            likesCount={item.likes}
+          />
         ))
       )}
     </div>

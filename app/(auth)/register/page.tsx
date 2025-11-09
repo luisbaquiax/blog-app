@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -10,8 +9,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import axiosInstance from "@/lib/axios"
 import Link from "next/link"
+import { api } from "@/lib/api"
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -26,6 +25,7 @@ export default function RegisterPage() {
     pais: "Guatemala",
     codigo_postal: "",
     sexo: "M",
+    tipo_sangre: "",
     biografia: "",
     nombre_usuario: "",
     password: "",
@@ -51,7 +51,7 @@ export default function RegisterPage() {
 
     try {
       const { confirmPassword, ...dataToSend } = formData
-      await axiosInstance.post("/users", dataToSend)
+      await api.register(dataToSend)
 
       router.push("/login?registered=true")
     } catch (err: any) {

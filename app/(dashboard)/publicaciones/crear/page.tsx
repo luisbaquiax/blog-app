@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -10,7 +9,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import axiosInstance from "@/lib/axios"
+import { api } from "@/lib/api"
+import { getUserFromStorage } from "@/lib/auth"
 
 export default function CrearPublicacionPage() {
   const [formData, setFormData] = useState({
@@ -18,20 +18,32 @@ export default function CrearPublicacionPage() {
     titulo: "",
     contenido: "",
     visibilidad: "PUBLICO",
-    orientacion_politica: "NEUTRO",
   })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
   const router = useRouter()
+  const user = getUserFromStorage()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!user) {
+      setError("Debes iniciar sesión")
+      return
+    }
+
     setLoading(true)
+    setError("")
 
     try {
-      await axiosInstance.post("/publicaciones", formData)
+      await api.crearPublicacion({
+        id_usuario: user.id_usuario,
+        ...formData,
+      })
       router.push("/dashboard")
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al crear publicación:", error)
+      setError(error.response?.data?.message || "Error al crear la publicación")
     } finally {
       setLoading(false)
     }
@@ -45,6 +57,8 @@ export default function CrearPublicacionPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">{error}</div>}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="tipo_publicacion">Tipo de Publicación</Label>
@@ -99,24 +113,6 @@ export default function CrearPublicacionPage() {
                 rows={10}
                 required
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="orientacion_politica">Orientación Política</Label>
-              <Select
-                value={formData.orientacion_politica}
-                onValueChange={(value) => setFormData({ ...formData, orientacion_politica: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="IZQUIERDA">Izquierda</SelectItem>
-                  <SelectItem value="CENTRO">Centro</SelectItem>
-                  <SelectItem value="DERECHA">Derecha</SelectItem>
-                  <SelectItem value="NEUTRO">Neutro</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="flex gap-4">

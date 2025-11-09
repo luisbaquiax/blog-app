@@ -3,27 +3,30 @@
 import { useState } from "react"
 import { Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import axiosInstance from "@/lib/axios"
 import { cn } from "@/lib/utils"
+import { api } from "@/lib/api"
+import { getUserFromStorage } from "@/lib/auth"
 
 interface LikeButtonProps {
   publicacionId: number
   initialLikes: number
-  initialHasLiked: boolean
 }
 
-export function LikeButton({ publicacionId, initialLikes, initialHasLiked }: LikeButtonProps) {
+export function LikeButton({ publicacionId, initialLikes }: LikeButtonProps) {
   const [likes, setLikes] = useState(initialLikes)
-  const [hasLiked, setHasLiked] = useState(initialHasLiked)
+  const [hasLiked, setHasLiked] = useState(false)
+  const user = getUserFromStorage()
 
   const handleLike = async () => {
+    if (!user) return
+
     try {
       if (hasLiked) {
-        await axiosInstance.delete(`/publicaciones/${publicacionId}/like`)
+        await api.quitarLike(user.id_usuario, publicacionId)
         setLikes(likes - 1)
         setHasLiked(false)
       } else {
-        await axiosInstance.post(`/publicaciones/${publicacionId}/like`)
+        await api.darLike(user.id_usuario, publicacionId)
         setLikes(likes + 1)
         setHasLiked(true)
       }

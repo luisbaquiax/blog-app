@@ -5,21 +5,21 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { removeUserFromStorage } from "@/lib/auth"
 
 export function Navbar() {
   const router = useRouter()
 
   const handleLogout = () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("user")
-    router.push("/login")
+    removeUserFromStorage()
+    router.push("/")
   }
 
   return (
     <nav className="border-b bg-card">
       <div className="flex items-center justify-between p-4">
         <Link href="/dashboard" className="text-xl font-bold">
-          Blog App
+          Blog Social
         </Link>
 
         <div className="flex items-center gap-4">

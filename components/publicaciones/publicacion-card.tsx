@@ -10,23 +10,30 @@ import type { Publicacion } from "@/types"
 
 interface PublicacionCardProps {
   publicacion: Publicacion
+  likesCount?: number
 }
 
-export function PublicacionCard({ publicacion }: PublicacionCardProps) {
+export function PublicacionCard({ publicacion, likesCount = 0 }: PublicacionCardProps) {
+  const usuario = publicacion.Usuario || publicacion.usuario
+  const persona = usuario?.Persona || usuario?.persona
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-start gap-4">
           <Avatar>
-            <AvatarFallback>{publicacion.usuario?.nombre_usuario[0].toUpperCase()}</AvatarFallback>
+            <AvatarFallback>{usuario?.nombre_usuario?.[0]?.toUpperCase() || "U"}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold">{publicacion.usuario?.nombre_usuario}</h3>
+              <h3 className="font-semibold">
+                {persona?.nombre} {persona?.apellido}
+              </h3>
               <Badge variant="secondary">{publicacion.tipo_publicacion}</Badge>
+              <Badge variant="outline">{usuario?.tipo_usuario}</Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              {new Date(publicacion.fecha_publicacion!).toLocaleDateString()}
+              @{usuario?.nombre_usuario} • {new Date(publicacion.fecha_publicacion!).toLocaleDateString("es-ES")}
             </p>
           </div>
         </div>
@@ -38,15 +45,13 @@ export function PublicacionCard({ publicacion }: PublicacionCardProps) {
         </Link>
 
         <div className="flex items-center gap-4 pt-2 border-t">
-          <LikeButton
-            publicacionId={publicacion.id_publicacion}
-            initialLikes={publicacion.likes_count || 0}
-            initialHasLiked={publicacion.has_liked || false}
-          />
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <MessageSquare className="h-4 w-4" />
-            <span>{publicacion.comentarios?.length || 0}</span>
-          </div>
+          <LikeButton publicacionId={publicacion.id_publicacion} initialLikes={likesCount} />
+          <Link href={`/publicaciones/${publicacion.id_publicacion}`}>
+            <div className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+              <MessageSquare className="h-4 w-4" />
+              <span>Comentarios</span>
+            </div>
+          </Link>
         </div>
       </CardContent>
     </Card>

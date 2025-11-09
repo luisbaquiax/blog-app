@@ -1,15 +1,15 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import axiosInstance from "@/lib/axios"
 import Link from "next/link"
+import { api } from "@/lib/api"
+import { saveUserToStorage } from "@/lib/auth"
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -26,13 +26,9 @@ export default function LoginPage() {
     setError("")
 
     try {
-      const response = await axiosInstance.post("/users/login", formData)
+      const response = await api.login(formData.nombre_usuario, formData.password)
 
-      // Guardar token y datos de usuario
-      if (response.data.token) {
-        localStorage.setItem("token", response.data.token)
-      }
-      localStorage.setItem("user", JSON.stringify(response.data.usuario))
+      saveUserToStorage(response.data.usuario)
 
       router.push("/dashboard")
     } catch (err: any) {
@@ -83,6 +79,12 @@ export default function LoginPage() {
               ¿No tienes cuenta?{" "}
               <Link href="/register" className="text-primary hover:underline">
                 Regístrate
+              </Link>
+            </p>
+
+            <p className="text-sm text-center">
+              <Link href="/" className="text-primary hover:underline">
+                Volver al inicio
               </Link>
             </p>
           </form>
