@@ -47,6 +47,10 @@ export const api = {
     return axiosInstance.get(`/publicaciones/publicaciones-visibles/${id_usuario}`)
   },
 
+  getPublicacionPorId: async (id_publicacion: number) => {
+    return axiosInstance.get(`/publicaciones/${id_publicacion}`)
+  },
+
   crearPublicacion: async (data: {
     id_usuario: number
     tipo_publicacion: string

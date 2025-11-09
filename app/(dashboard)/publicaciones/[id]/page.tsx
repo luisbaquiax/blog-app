@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { ComentariosSection } from "@/components/comentarios/comentarios-section"
 import { LikeButton } from "@/components/publicaciones/like-button"
 import type { Publicacion } from "@/types"
-// Usaremos las publicaciones visibles y filtraremos
+import { api } from "@/lib/api"
 
 export default function PublicacionDetailPage() {
   const params = useParams()
@@ -18,7 +18,8 @@ export default function PublicacionDetailPage() {
   useEffect(() => {
     const fetchPublicacion = async () => {
       try {
-        // En producción, se debería agregar un endpoint GET /publicaciones/:id
+        const response = await api.getPublicacionPorId(Number(params.id))
+        setPublicacion(response.data.data)
         setLoading(false)
       } catch (error) {
         console.error("Error al cargar publicación:", error)
@@ -38,10 +39,7 @@ export default function PublicacionDetailPage() {
       <div className="max-w-4xl mx-auto p-6">
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">Vista detallada de publicación - ID: {params.id}</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Nota: Se requiere endpoint GET /publicaciones/:id en el backend
-            </p>
+            <p className="text-muted-foreground">Publicación no encontrada</p>
           </CardContent>
         </Card>
       </div>
@@ -60,10 +58,22 @@ export default function PublicacionDetailPage() {
               <div className="flex items-center gap-2 mb-2">
                 <h3 className="font-semibold">{publicacion.usuario?.nombre_usuario}</h3>
                 <Badge variant="secondary">{publicacion.tipo_publicacion}</Badge>
+                {publicacion.usuario?.tipo_usuario === "PERIODISTA" && <Badge variant="outline">Periodista</Badge>}
               </div>
               <p className="text-sm text-muted-foreground">
-                {new Date(publicacion.fecha_publicacion!).toLocaleDateString("es-ES")}
+                {new Date(publicacion.fecha_publicacion!).toLocaleDateString("es-ES", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </p>
+              {publicacion.usuario?.persona && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {publicacion.usuario.persona.nombre} {publicacion.usuario.persona.apellido}
+                </p>
+              )}
             </div>
           </div>
         </CardHeader>
