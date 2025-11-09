@@ -25,9 +25,9 @@ export default function AprobacionesAdminPage() {
   const fetchPublicacionesPendientes = async () => {
     try {
       // Obtener todas las publicaciones públicas y filtrar las pendientes
-      const response = await api.getPublicacionesPublicas()
+      const response = await api.getPublicacionesPendientes()
       const pubs = response.data.data || []
-      const pendientes = pubs.filter((p: any) => p.estado === "PENDIENTE" && p.tipo_publicacion === "NOTICIA")
+      const pendientes = pubs
       setPublicacionesPendientes(pendientes)
     } catch (error) {
       console.error("Error al cargar publicaciones pendientes:", error)

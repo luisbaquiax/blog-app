@@ -47,6 +47,11 @@ export const api = {
     return axiosInstance.get(`/publicaciones/publicaciones-visibles/${id_usuario}`)
   },
 
+  getPublicacionesPendientes: async () => {
+    return axiosInstance.get("/publicaciones/pendientes/lista")
+  },
+
+
   getPublicacionPorId: async (id_publicacion: number) => {
     return axiosInstance.get(`/publicaciones/${id_publicacion}`)
   },
@@ -166,7 +171,7 @@ export const api = {
   actualizarEstadoDenuncia: async (id_denuncia: number, nuevo_estado: string) => {
     return axiosInstance.put(`/denuncias/actualizar`, { id_denuncia, nuevo_estado })
   },
-  
+
   // Suscripciones
   suscribirseAPeriodista: async (id_usuario: number, id_periodista: number) => {
     return axiosInstance.post("/suscripciones/suscribirse", { id_usuario, id_periodista })
