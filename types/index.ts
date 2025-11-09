@@ -109,3 +109,8 @@ export interface Denuncia {
   Usuario?: Usuario
   publicacion?: Publicacion
 }
+
+export interface PublicacionLike {
+  publicacion: Publicacion
+  likes: number
+}

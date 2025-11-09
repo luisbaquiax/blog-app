@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Users, BookOpen, TrendingUp, Shield, FileText } from "lucide-react"
+import { Home, Users, BookOpen, TrendingUp, Shield, FileText, Edit } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -14,6 +14,7 @@ export function Sidebar() {
     { href: "/dashboard", label: "Inicio", icon: Home, roles: ["COMUN", "PERIODISTA", "ADMINISTRADOR"] },
     { href: "/amigos", label: "Amigos", icon: Users, roles: ["COMUN", "PERIODISTA", "ADMINISTRADOR"] },
     { href: "/publicaciones", label: "Publicaciones", icon: BookOpen, roles: ["COMUN", "PERIODISTA", "ADMINISTRADOR"] },
+    { href: "/mis-publicaciones", label: "Mis Publicaciones", icon: Edit, roles: ["COMUN", "PERIODISTA"] },
     { href: "/tendencias", label: "Tendencias", icon: TrendingUp, roles: ["COMUN", "PERIODISTA", "ADMINISTRADOR"] },
     { href: "/admin/denuncias", label: "Denuncias", icon: Shield, roles: ["ADMINISTRADOR"] },
     { href: "/admin/aprobaciones", label: "Aprobar Noticias", icon: FileText, roles: ["ADMINISTRADOR"] },

@@ -34,7 +34,7 @@ interface Publicacion {
 }
 
 export default function HomePage() {
-  const [publicacionesPublicas, setPublicacionesPublicas] = useState<Publicacion[]>([])
+  const [publicacionesPublicas, setPublicacionesPublicas] = useState<any[]>([])
   const [publicacionesAmigos, setPublicacionesAmigos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState<"publicas" | "amigos">("publicas")
@@ -48,7 +48,7 @@ export default function HomePage() {
   const cargarPublicaciones = async () => {
     try {
       const responsePublicas = await api.getPublicacionesPublicas()
-      setPublicacionesPublicas(responsePublicas.data.data || [])
+      setPublicacionesPublicas(responsePublicas.data || [])
 
       if (user) {
         const responseAmigos = await api.getPublicacionesVisibles(user.id_usuario)
@@ -75,9 +75,9 @@ export default function HomePage() {
     }
   }
 
-  const renderPublicacion = (pub: any, likesCount?: number) => {
-    const publicacion = pub.publicacion || pub
-    const likes = likesCount || pub.likes || 0
+  const renderPublicacion = (item: any) => {
+    const publicacion = item.publicacion || item
+    const likes = item.likes || 0
 
     return (
       <Card key={publicacion.id_publicacion} className="overflow-hidden">
@@ -229,7 +229,7 @@ export default function HomePage() {
                         </CardContent>
                       </Card>
                     ) : (
-                      publicacionesPublicas.map((pub) => renderPublicacion(pub))
+                      publicacionesPublicas.map((item) => renderPublicacion(item))
                     )}
                   </TabsContent>
                   <TabsContent value="amigos" className="space-y-6">
@@ -240,7 +240,7 @@ export default function HomePage() {
                         </CardContent>
                       </Card>
                     ) : (
-                      publicacionesAmigos.map((item) => renderPublicacion(item.publicacion, item.likes))
+                      publicacionesAmigos.map((item) => renderPublicacion(item))
                     )}
                   </TabsContent>
                 </Tabs>
@@ -253,7 +253,7 @@ export default function HomePage() {
                       </CardContent>
                     </Card>
                   ) : (
-                    publicacionesPublicas.map((pub) => renderPublicacion(pub))
+                    publicacionesPublicas.map((item) => renderPublicacion(item))
                   )}
                 </div>
               )}

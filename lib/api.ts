@@ -51,7 +51,6 @@ export const api = {
     return axiosInstance.get("/publicaciones/pendientes/lista")
   },
 
-
   getPublicacionPorId: async (id_publicacion: number) => {
     return axiosInstance.get(`/publicaciones/${id_publicacion}`)
   },
@@ -77,6 +76,10 @@ export const api = {
 
   getPublicacionesPorOrientacion: async (id_usuario: number) => {
     return axiosInstance.get(`/publicaciones/por-orientacion/${id_usuario}`)
+  },
+
+  getMisPublicaciones: async (id_usuario: number) => {
+    return axiosInstance.get(`/publicaciones/mis-publicaciones/${id_usuario}`)
   },
 
   agregarFotoPublicacion: async (formData: FormData) => {
