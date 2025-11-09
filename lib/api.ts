@@ -92,11 +92,11 @@ export const api = {
     id_usuario: number
     contenido: string
   }) => {
-    return axiosInstance.post("/comentarios", data)
+    return axiosInstance.post("/comentarios/comentarios", data)
   },
 
   getComentariosPorPublicacion: async (id_publicacion: number) => {
-    return axiosInstance.get(`/comentarios/publicacion/${id_publicacion}`)
+    return axiosInstance.get(`/comentarios/comentarios/publicacion/${id_publicacion}`)
   },
 
   getComentariosPorUsuario: async (id_usuario: number) => {
