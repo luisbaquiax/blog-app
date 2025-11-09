@@ -187,6 +187,6 @@ export const api = {
 
   // Usuarios con persona
   getUsersWithPersona: async () => {
-    return axiosInstance.get("/users/con-persona")
+    return axiosInstance.get("/users")
   },
 }

@@ -23,7 +23,7 @@ export default function DenunciasAdminPage() {
   const fetchDenuncias = async () => {
     try {
       const response = await api.getDenunciasPendientes()
-      setDenuncias(response.data || [])
+      setDenuncias(response.data.denuncias || [])
     } catch (error) {
       console.error("Error al cargar denuncias:", error)
     } finally {
@@ -91,6 +91,18 @@ export default function DenunciasAdminPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                {denuncia.Usuario && (
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <p className="text-sm font-semibold mb-1">Denunciado por:</p>
+                    <p className="text-sm">
+                      {denuncia.Usuario.Persona?.nombre} {denuncia.Usuario.Persona?.apellido}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      @{denuncia.Usuario.nombre_usuario} - {denuncia.Usuario.tipo_usuario}
+                    </p>
+                  </div>
+                )}
+
                 <div>
                   <p className="text-sm font-semibold mb-1">Descripción:</p>
                   <p className="text-sm text-muted-foreground">{denuncia.descripcion}</p>

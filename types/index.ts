@@ -98,13 +98,14 @@ export interface PublicacionMasLeida {
 
 export interface Denuncia {
   id_denuncia: number
-  id_usuario: number
+  id_usuario_denunciante: number
   id_publicacion: number
+  id_comentario?: number
   motivo: string
   descripcion: string
   estado: "PENDIENTE" | "REVISADO" | "ACEPTADO" | "RECHAZADO"
   fecha_denuncia: string
   fecha_actualizacion?: string
-  usuario?: Usuario
+  Usuario?: Usuario
   publicacion?: Publicacion
 }

@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ListaAmigos } from "@/components/amigos/lista-amigos"
 import { SolicitudesAmistad } from "@/components/amigos/solicitudes-amistad"
+import { BuscarPersonas } from "@/components/amigos/buscar-personas"
 
 export default function AmigosPage() {
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Amigos</CardTitle>
@@ -26,6 +27,8 @@ export default function AmigosPage() {
           </Tabs>
         </CardContent>
       </Card>
+
+      <BuscarPersonas />
     </div>
   )
 }
