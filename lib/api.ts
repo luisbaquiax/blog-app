@@ -129,7 +129,7 @@ export const api = {
   },
 
   verificarLike: async (id_usuario: number, id_publicacion: number) => {
-    return axiosInstance.get(`/likes/like/verificar/${id_usuario}/${id_publicacion}`)
+    return axiosInstance.get(`/likes/verificar/${id_usuario}/${id_publicacion}`)
   },
 
   // Amigos

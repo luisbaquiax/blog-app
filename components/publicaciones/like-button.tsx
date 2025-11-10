@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react" // 👈 Importar useEffect
 import { Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -14,8 +14,23 @@ interface LikeButtonProps {
 
 export function LikeButton({ publicacionId, initialLikes }: LikeButtonProps) {
   const [likes, setLikes] = useState(initialLikes)
-  const [hasLiked, setHasLiked] = useState(false)
+  const [hasLiked, setHasLiked] = useState(false) 
   const user = getUserFromStorage()
+
+  const verificarLike = async () => {
+    if (!user) return
+
+    try {
+      const response = await api.verificarLike(user.id_usuario, publicacionId)
+      setHasLiked(response.data.yaDioLike)
+    } catch (error) {
+      console.error("Error al verificar like:", error)
+    }
+  }
+
+  useEffect(() => {
+    verificarLike()
+  }, [])
 
   const handleLike = async () => {
     if (!user) return
