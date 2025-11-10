@@ -119,7 +119,7 @@ export default function DenunciasAdminPage() {
                 </div>
 
                 <div className="flex gap-2 pt-2">
-                  <Button size="sm" onClick={() => handleActualizarEstado(denuncia.id_denuncia, "ACEPTADO")}>
+                  <Button size="sm" onClick={() => handleActualizarEstado(denuncia.id_denuncia, "ELIMINAR")}>
                     <Check className="h-4 w-4 mr-1" />
                     Aceptar y Eliminar Publicación
                   </Button>
