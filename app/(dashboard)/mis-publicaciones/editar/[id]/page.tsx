@@ -1,9 +1,8 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { api } from "@/lib/api"
 import { getUserFromStorage } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
@@ -14,62 +13,71 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 
-export default function EditarPublicacionPage({ params }: { params: { id: string } }) {
+export default function EditarPublicacionPage() {
+  const params = useParams()
+  const id = params?.id as string
+
+  const [user, setUser] = useState<any>(null)
   const [titulo, setTitulo] = useState("")
   const [contenido, setContenido] = useState("")
   const [visibilidad, setVisibilidad] = useState<"PUBLICO" | "AMIGOS">("PUBLICO")
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(true)
+
   const router = useRouter()
-  const user = getUserFromStorage()
   const { toast } = useToast()
 
   useEffect(() => {
-    if (!user) {
+    const storedUser = getUserFromStorage()
+    if (!storedUser) {
       router.push("/login")
-      return
+    } else {
+      setUser(storedUser)
     }
-    cargarPublicacion()
-  }, [])
+  }, [router])
 
-  const cargarPublicacion = async () => {
-    try {
-      const response = await api.getPublicacionPorId(Number.parseInt(params.id))
-      const data = response.data.data
-      const publicacion = data.publicacion || data
+  useEffect(() => {
+    if (!user || !id) return
 
-      // Verificar que el usuario sea el dueño
-      if (publicacion.id_usuario !== user!.id_usuario) {
+    const cargarPublicacion = async () => {
+      try {
+        const response = await api.getPublicacionPorId(Number.parseInt(id))
+        const publicacion = response.data.data.publicacion
+
+        if (!publicacion || publicacion.id_usuario !== user.id_usuario) {
+          toast({
+            title: "Error",
+            description: "No tienes permiso para editar esta publicación o no existe.",
+            variant: "destructive",
+          })
+          router.push("/mis-publicaciones")
+          return
+        }
+
+        setTitulo(publicacion.titulo)
+        setContenido(publicacion.contenido)
+        setVisibilidad(publicacion.visibilidad as "PUBLICO" | "AMIGOS")
+      } catch (error) {
+        console.error("Error al cargar publicación:", error)
         toast({
           title: "Error",
-          description: "No tienes permiso para editar esta publicación",
+          description: "No se pudo cargar la publicación",
           variant: "destructive",
         })
-        router.push("/mis-publicaciones")
-        return
+      } finally {
+        setLoadingData(false)
       }
-
-      setTitulo(publicacion.titulo)
-      setContenido(publicacion.contenido)
-      setVisibilidad(publicacion.visibilidad)
-    } catch (error) {
-      console.error("Error al cargar publicación:", error)
-      toast({
-        title: "Error",
-        description: "No se pudo cargar la publicación",
-        variant: "destructive",
-      })
-    } finally {
-      setLoadingData(false)
     }
-  }
+
+    cargarPublicacion()
+  }, [user, id, router, toast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
-      await api.actualizarPublicacion(Number.parseInt(params.id), {
+      await api.actualizarPublicacion(Number.parseInt(id), {
         titulo,
         contenido,
         visibilidad,
@@ -93,6 +101,7 @@ export default function EditarPublicacionPage({ params }: { params: { id: string
     }
   }
 
+  // 🔹 Mostrar carga inicial
   if (loadingData) {
     return (
       <div className="container mx-auto py-8">
@@ -101,6 +110,7 @@ export default function EditarPublicacionPage({ params }: { params: { id: string
     )
   }
 
+  // 🔹 Render principal
   return (
     <div className="container mx-auto max-w-4xl py-8">
       <Card>
@@ -134,7 +144,10 @@ export default function EditarPublicacionPage({ params }: { params: { id: string
 
             <div className="space-y-2">
               <Label htmlFor="visibilidad">Visibilidad</Label>
-              <Select value={visibilidad} onValueChange={(value: any) => setVisibilidad(value)}>
+              <Select
+                value={visibilidad}
+                onValueChange={(value: "PUBLICO" | "AMIGOS") => setVisibilidad(value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona la visibilidad" />
                 </SelectTrigger>
@@ -149,7 +162,11 @@ export default function EditarPublicacionPage({ params }: { params: { id: string
               <Button type="submit" disabled={loading}>
                 {loading ? "Guardando..." : "Guardar Cambios"}
               </Button>
-              <Button type="button" variant="outline" onClick={() => router.push("/mis-publicaciones")}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push("/mis-publicaciones")}
+              >
                 Cancelar
               </Button>
             </div>

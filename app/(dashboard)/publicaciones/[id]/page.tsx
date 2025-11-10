@@ -1,7 +1,6 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from "react";
-// Se asume que estos imports funcionan en tu entorno Next.js/React
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -27,33 +26,43 @@ interface ApiResponse {
 
 export default function PublicacionDetailPage() {
   const params = useParams();
-  // El estado ahora usa la interfaz adaptada para guardar la publicación Y los likes
   const [publicacionData, setPublicacionData] = useState<PublicacionData | null>(null);
   const [loading, setLoading] = useState(true);
-  const user = getUserFromStorage();
+
+  const historialRegistrado = useRef(false);
+
+  const user = useMemo(() => getUserFromStorage(), []); 
   
-  // Extraemos el objeto de publicación real del estado para simplificar el JSX
+  const publicacionId = useMemo(() => {
+    if (params && params.id) {
+        const idString = Array.isArray(params.id) ? params.id[0] : params.id;
+        return Number(idString);
+    }
+    return NaN;
+  }, [params.id]);
+
   const publicacion = publicacionData?.publicacion;
 
   useEffect(() => {
-    const publicacionId = Number(params.id);
     if (!publicacionId || isNaN(publicacionId)) {
         setLoading(false);
         return;
     }
 
     const fetchPublicacion = async () => {
+      if (publicacionData && publicacionData.publicacion.id_publicacion === publicacionId) {
+          setLoading(false);
+          return;
+      }
+      
+      setLoading(true);
       try {
         const response = await api.getPublicacionPorId(publicacionId);
         
         const dataFromApi: ApiResponse = response.data.data; 
 
         setPublicacionData(dataFromApi);
-
-        if (user) {
-          await api.agregarHistorialLectura(user.id_usuario, publicacionId);
-        }
-
+        
       } catch (error) {
         console.error("Error al cargar publicación:", error);
       } finally {
@@ -62,13 +71,38 @@ export default function PublicacionDetailPage() {
     };
 
     fetchPublicacion();
-  }, [params.id, user]);
+    
+  }, [publicacionId]);
+
+  useEffect(() => {
+    if (!publicacionId || isNaN(publicacionId) || !user) {
+        return;
+    }
+
+    if (historialRegistrado.current) {
+        console.log(`[Historial Controlado] Evitando doble registro para ID: ${publicacionId}`);
+        return; 
+    }
+
+    const registerHistory = async () => {
+      try {
+        await api.agregarHistorialLectura(user.id_usuario, publicacionId);
+        historialRegistrado.current = true; 
+        console.log(`✅ Historial de lectura registrado de forma única para ID: ${publicacionId}`);
+      } catch (error) {
+        console.error("❌ Error al registrar historial de lectura:", error);
+      }
+    };
+
+    registerHistory();
+    
+  }, [publicacionId, user]);
+
 
   if (loading) {
     return <div className="max-w-4xl mx-auto p-6 font-sans text-gray-700">Cargando detalles de la publicación...</div>;
   }
 
-  // Comprobación doble después de la carga
   if (!publicacion || !publicacionData) {
     return (
       <div className="max-w-4xl mx-auto p-6">
